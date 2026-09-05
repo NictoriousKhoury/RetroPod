@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">RetroPod</string>
+    <string name="permission_rationale">RetroPod needs access to your audio files to build your library.</string>
+    <string name="grant_access">Grant access</string>
+    <string name="tab_playlists">Playlists</string>
+    <string name="tab_artists">Artists</string>
+    <string name="tab_songs">Songs</string>
+    <string name="tab_albums">Albums</string>
+    <string name="tab_more">More</string>
+</resources>
