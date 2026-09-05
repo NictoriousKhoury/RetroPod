@@ -159,7 +159,9 @@ private fun MainShell(
         }
     }
 
-    val openNowPlaying: () -> Unit = { navController.navigate(Routes.NOW_PLAYING) }
+    val openNowPlaying: () -> Unit = {
+        navController.navigate(Routes.NOW_PLAYING) { launchSingleTop = true }
+    }
 
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val hideNowPlayingChip = currentRoute == Routes.NOW_PLAYING || isLandscape
@@ -291,7 +293,9 @@ private fun MainShell(
                 NowPlayingScreen(
                     playerViewModel = playerViewModel,
                     onBack = { navController.popBackStack() },
-                    onOpenQueue = { navController.navigate(Routes.QUEUE) },
+                    onOpenQueue = {
+                        navController.navigate(Routes.QUEUE) { launchSingleTop = true }
+                    },
                     onOpenArtist = { name ->
                         if (name.isNotBlank()) navController.navigate(Routes.artist(name))
                     },

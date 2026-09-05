@@ -79,6 +79,11 @@ class PlayerViewModel @Inject constructor(
     }
 
     private fun bumpPlayCount(id: Long) = viewModelScope.launch { statsDao.incrementPlayCount(id) }
+
+    override fun onCleared() {
+        connection.release()
+        super.onCleared()
+    }
 }
 
 data class QueueToast(

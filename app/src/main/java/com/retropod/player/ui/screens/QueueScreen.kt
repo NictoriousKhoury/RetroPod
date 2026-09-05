@@ -91,21 +91,22 @@ fun QueueScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            items(local, key = { "${it.mediaId}#${it.indexInQueue}" }) { item ->
-                ReorderableItem(reorderState, key = "${item.mediaId}#${item.indexInQueue}") {
+            items(local, key = { System.identityHashCode(it) }) { item ->
+                ReorderableItem(reorderState, key = System.identityHashCode(item)) {
                     val itemScope = this
-                    val isCurrent = item.indexInQueue == currentIndex
+                    val index = local.indexOf(item).takeIf { it >= 0 } ?: return@ReorderableItem
+                    val isCurrent = index == currentIndex
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->
-                            when (value) {
-                                SwipeToDismissBoxValue.EndToStart -> {
-                                    if (!isCurrent) {
-                                        playerViewModel.removeFromQueue(item.indexInQueue)
-                                        true
-                                    } else false
+                            val at = local.indexOf(item)
+                            when {
+                                at < 0 -> false
+                                value == SwipeToDismissBoxValue.EndToStart && at != currentIndex -> {
+                                    playerViewModel.removeFromQueue(at)
+                                    true
                                 }
-                                SwipeToDismissBoxValue.StartToEnd -> {
-                                    if (!isCurrent) playerViewModel.moveToPlayNext(item.indexInQueue)
+                                value == SwipeToDismissBoxValue.StartToEnd && at != currentIndex -> {
+                                    playerViewModel.moveToPlayNext(at)
                                     false
                                 }
                                 else -> false
@@ -133,7 +134,7 @@ fun QueueScreen(
                         QueueRow(
                             item = item,
                             isCurrent = isCurrent,
-                            alreadyPlayed = item.indexInQueue < currentIndex,
+                            alreadyPlayed = index < currentIndex,
                             dragHandle = {
                                 Icon(
                                     Icons.Filled.DragHandle, "Reorder",
@@ -148,7 +149,10 @@ fun QueueScreen(
                                     )
                                 )
                             },
-                            onClick = { playerViewModel.playIndex(item.indexInQueue) }
+                            onClick = {
+                                val at = local.indexOf(item)
+                                if (at >= 0) playerViewModel.playIndex(at)
+                            }
                         )
                     }
                 }

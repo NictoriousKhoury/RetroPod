@@ -7,4 +7,5 @@
     <string name="tab_songs">Songs</string>
     <string name="tab_albums">Albums</string>
     <string name="tab_more">More</string>
+    <string name="widget_description">Open RetroPod</string>
 </resources>

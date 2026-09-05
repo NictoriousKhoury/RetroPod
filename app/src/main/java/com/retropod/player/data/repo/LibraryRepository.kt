@@ -33,12 +33,17 @@ class LibraryRepository @Inject constructor(
 
     suspend fun refresh() = refreshMutex.withLock {
         _loading.value = true
-        val songs = scanner.scanSongs()
-        byId = songs.associateBy { it.id }
-        _songs.value = songs
-        _albums.value = scanner.deriveAlbums(songs)
-        _artists.value = scanner.deriveArtists(songs)
-        _loading.value = false
+        try {
+            val songs = scanner.scanSongs()
+            byId = songs.associateBy { it.id }
+            _songs.value = songs
+            _albums.value = scanner.deriveAlbums(songs)
+            _artists.value = scanner.deriveArtists(songs)
+        } catch (_: SecurityException) {
+            // Permission revoked mid-scan — keep the last good library.
+        } finally {
+            _loading.value = false
+        }
     }
 
     fun songById(id: Long): Song? = byId[id]

@@ -23,7 +23,16 @@ interface PlaylistDao {
     suspend fun renamePlaylist(id: Long, name: String)
 
     @Query("DELETE FROM playlists WHERE id = :id")
-    suspend fun deletePlaylist(id: Long)
+    suspend fun deletePlaylistRow(id: Long)
+
+    @Transaction
+    suspend fun deletePlaylist(id: Long) {
+        clearSongs(id)
+        deletePlaylistRow(id)
+    }
+
+    @Query("DELETE FROM playlist_songs WHERE songId NOT IN (:validIds)")
+    suspend fun deleteSongsNotIn(validIds: List<Long>)
 
     @Query("SELECT songId FROM playlist_songs WHERE playlistId = :playlistId ORDER BY position ASC")
     fun observeSongIds(playlistId: Long): Flow<List<Long>>

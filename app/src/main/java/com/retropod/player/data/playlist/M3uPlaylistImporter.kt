@@ -37,27 +37,49 @@ class M3uPlaylistImporter @Inject constructor(
             byName.putIfAbsent(song.fileName.lowercase(), song)
             byName.putIfAbsent(matchKey(song.fileName), song)
         }
-        val dir = candidateDirs().firstOrNull { it.isDirectory } ?: return@withContext emptyList()
-        val files = dir.listFiles { f -> f.extension.equals("m3u8", true) || f.extension.equals("m3u", true) }
-            ?.sortedBy { it.name.lowercase() }
-            ?: return@withContext emptyList()
+        val files = candidateDirs()
+            .filter { it.isDirectory }
+            .flatMap { dir ->
+                dir.listFiles { f ->
+                    f.isFile && (f.extension.equals("m3u8", true) || f.extension.equals("m3u", true))
+                }?.toList().orEmpty()
+            }
+            .distinctBy { it.nameWithoutExtension.lowercase() }
+            .sortedBy { it.name.lowercase() }
+        if (files.isEmpty()) return@withContext emptyList()
 
-        files.mapIndexed { index, file ->
-            val ids = ArrayList<Long>()
-            file.readLines(Charsets.UTF_8).forEach { raw ->
-                val line = raw.trim()
+        files.map { file ->
+            val seen = LinkedHashSet<Long>()
+            val lines = try {
+                file.readLines(Charsets.UTF_8)
+            } catch (_: Exception) {
+                emptyList()
+            }
+            lines.forEach { raw ->
+                val line = raw.trim().trimStart('\uFEFF')
                 if (line.isEmpty() || line.startsWith("#")) return@forEach
-                val base = File(line.replace('\\', '/')).name
+                val decoded = try {
+                    android.net.Uri.decode(line)
+                } catch (_: Exception) {
+                    line
+                }
+                val base = File(decoded.replace('\\', '/')).name
                 val song = byName[base.lowercase()] ?: byName[matchKey(base)]
-                song?.let { ids += it.id }
+                if (song != null) seen += song.id
             }
             Playlist(
-                id = -(index.toLong() + 1),          // negative ids = imported (read-only)
+                id = importedId(file.nameWithoutExtension),
                 name = file.nameWithoutExtension,
                 isUserPlaylist = false,
-                songIds = ids
+                songIds = seen.toList()
             )
         }.filter { it.songIds.isNotEmpty() }
+    }
+
+    /** Stable negative id so adding/removing a .m3u8 file does not shift others. */
+    private fun importedId(name: String): Long {
+        val h = name.lowercase().hashCode().toLong() and 0xFFFFFFFFL
+        return -(h + 1)
     }
 
     /** Matches playlist lines to files even if SPOTISAVER / copy suffixes differ. */

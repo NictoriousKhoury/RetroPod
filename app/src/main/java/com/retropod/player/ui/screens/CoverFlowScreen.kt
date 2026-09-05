@@ -47,6 +47,7 @@ fun CoverFlowScreen(
     playerViewModel: PlayerViewModel? = null
 ) {
     val albums by libraryViewModel.albums.collectAsStateWithLifecycle()
+    val pagerState = rememberPagerState(pageCount = { albums.size })
 
     Box(
         modifier.fillMaxSize().background(
@@ -57,7 +58,6 @@ fun CoverFlowScreen(
             Text("No albums", color = Color.White, modifier = Modifier.align(Alignment.Center))
             return@Box
         }
-        val pagerState = rememberPagerState(pageCount = { albums.size })
         BoxWithConstraints(Modifier.fillMaxSize()) {
             // Landscape phones are wide and short — cap art so covers aren't huge.
             val art = min(min(maxWidth.value * 0.22f, maxHeight.value * 0.42f), 168f).dp
@@ -70,7 +70,7 @@ fun CoverFlowScreen(
                 pageSpacing = (-art.value * 0.12f).dp,
                 beyondViewportPageCount = 2
             ) { page ->
-                val album = albums[page]
+                val album = albums.getOrNull(page) ?: return@HorizontalPager
                 val offset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
                 val absOffset = offset.absoluteValue.coerceIn(0f, 2f)
                 Column(
@@ -119,7 +119,7 @@ fun CoverFlowScreen(
                 }
             }
 
-            val current = albums[pagerState.currentPage]
+            val current = albums.getOrNull(pagerState.currentPage) ?: return@BoxWithConstraints
             Column(
                 Modifier
                     .align(Alignment.BottomCenter)

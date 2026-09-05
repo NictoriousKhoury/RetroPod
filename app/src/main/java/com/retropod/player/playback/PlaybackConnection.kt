@@ -30,6 +30,7 @@ class PlaybackConnection @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
+    private var positionJob: kotlinx.coroutines.Job? = null
     private val pending = ArrayDeque<(MediaController) -> Unit>()
 
     private val _nowPlaying = MutableStateFlow<NowPlaying?>(null)
@@ -61,16 +62,25 @@ class PlaybackConnection @Inject constructor(
         val future = MediaController.Builder(context, PlaybackService.token(context)).buildAsync()
         controllerFuture = future
         future.addListener({
-            controller = future.get().also { c ->
-                c.addListener(PlayerListener())
-                syncFromPlayer(c)
-                while (pending.isNotEmpty()) pending.removeFirst().invoke(c)
+            try {
+                if (controllerFuture !== future) return@addListener
+                controller = future.get().also { c ->
+                    c.addListener(PlayerListener())
+                    syncFromPlayer(c)
+                    while (pending.isNotEmpty()) pending.removeFirst().invoke(c)
+                }
+                startPositionLoop()
+            } catch (_: Exception) {
+                controllerFuture = null
+                controller = null
             }
-            startPositionLoop()
         }, MoreExecutors.directExecutor())
     }
 
     fun release() {
+        positionJob?.cancel()
+        positionJob = null
+        pending.clear()
         controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null
         controller = null
@@ -82,7 +92,8 @@ class PlaybackConnection @Inject constructor(
     }
 
     private fun startPositionLoop() {
-        scope.launch {
+        positionJob?.cancel()
+        positionJob = scope.launch {
             while (true) {
                 controller?.let { c ->
                     _positionMs.value = c.currentPosition.coerceAtLeast(0)

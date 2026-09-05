@@ -31,6 +31,12 @@ class PlaylistRepository @Inject constructor(
 
     suspend fun renamePlaylist(id: Long, name: String) = playlistDao.renamePlaylist(id, name)
     suspend fun deletePlaylist(id: Long) = playlistDao.deletePlaylist(id)
+
+    /** Drop user-playlist rows whose MediaStore ids no longer exist. */
+    suspend fun pruneMissingSongs(validIds: Collection<Long>) {
+        if (validIds.isEmpty()) return
+        playlistDao.deleteSongsNotIn(validIds.toList())
+    }
     suspend fun setPlaylistSongs(id: Long, songIds: List<Long>) = playlistDao.setSongs(id, songIds)
     suspend fun addToPlaylist(id: Long, songIds: List<Long>) = playlistDao.appendSongs(id, songIds)
     suspend fun userPlaylistSongIds(id: Long): List<Long> = playlistDao.getSongIds(id)

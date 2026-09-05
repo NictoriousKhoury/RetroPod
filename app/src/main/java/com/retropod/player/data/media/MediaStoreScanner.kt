@@ -39,7 +39,12 @@ class MediaStoreScanner @Inject constructor(
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE ASC"
 
-        context.contentResolver.query(collection, projection, selection, null, sortOrder)?.use { c ->
+        val cursor = try {
+            context.contentResolver.query(collection, projection, selection, null, sortOrder)
+        } catch (_: SecurityException) {
+            null
+        }
+        cursor?.use { c ->
             val idCol = c.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val titleCol = c.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val artistCol = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)

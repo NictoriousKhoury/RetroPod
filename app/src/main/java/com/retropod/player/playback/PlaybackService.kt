@@ -28,6 +28,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -82,6 +85,11 @@ class PlaybackService : MediaLibraryService() {
         serviceScope.launch {
             librarySync.sync(scanDisk = true)
             restoreState()
+            libraryRepository.songs
+                .map { it.isNotEmpty() }
+                .distinctUntilChanged()
+                .filter { it }
+                .collect { restoreState() }
         }
     }
 
@@ -123,8 +131,8 @@ class PlaybackService : MediaLibraryService() {
 
     override fun onDestroy() {
         saveState()
-        session.release()
-        player.release()
+        if (::session.isInitialized) session.release()
+        if (::player.isInitialized) player.release()
         serviceScope.cancel()
         super.onDestroy()
     }
@@ -171,12 +179,14 @@ class PlaybackService : MediaLibraryService() {
         }
 
         private fun resolveDynamicChildren(parentId: String): List<MediaItem> = when {
-            parentId.startsWith("album_") ->
-                MediaItems.fromSongs(libraryRepository.songsForAlbum(parentId.removePrefix("album_").toLong()))
+            parentId.startsWith("album_") -> {
+                val albumId = parentId.removePrefix("album_").toLongOrNull() ?: return emptyList()
+                MediaItems.fromSongs(libraryRepository.songsForAlbum(albumId))
+            }
             parentId.startsWith("artist_") ->
                 MediaItems.fromSongs(libraryRepository.songsForArtist(parentId.removePrefix("artist_")))
             parentId.startsWith("playlist_") -> {
-                val id = parentId.removePrefix("playlist_").toLong()
+                val id = parentId.removePrefix("playlist_").toLongOrNull() ?: return emptyList()
                 val ids = playlistRepository.importedById(id)?.songIds ?: emptyList()
                 MediaItems.fromSongs(libraryRepository.songsByIds(ids))
             }

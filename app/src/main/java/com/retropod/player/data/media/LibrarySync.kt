@@ -85,6 +85,7 @@ class LibrarySync @Inject constructor(
                     lastDiskScanAt = System.currentTimeMillis()
                 }
                 libraryRepository.refresh()
+                playlistRepository.pruneMissingSongs(libraryRepository.songs.value.map { it.id })
                 playlistRepository.refreshImported()
             } finally {
                 delay(400)
@@ -119,13 +120,18 @@ class LibrarySync @Inject constructor(
 
     private fun indexedPaths(): Set<String> {
         val out = HashSet<String>()
-        context.contentResolver.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(MediaStore.Audio.Media.DATA),
-            null,
-            null,
+        val cursor = try {
+            context.contentResolver.query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                arrayOf(MediaStore.Audio.Media.DATA),
+                null,
+                null,
+                null
+            )
+        } catch (_: SecurityException) {
             null
-        )?.use { c ->
+        }
+        cursor?.use { c ->
             val col = c.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             while (c.moveToNext()) {
                 c.getString(col)?.let { out += it.lowercase() }
