@@ -39,6 +39,10 @@ class PlaylistViewModel @Inject constructor(
         playlistRepository.addToPlaylist(id, songIds)
     }
 
+    fun removeFromPlaylist(id: Long, songId: Long) = viewModelScope.launch {
+        playlistRepository.removeFromPlaylist(id, songId)
+    }
+
     fun setPlaylistSongs(id: Long, songIds: List<Long>) = viewModelScope.launch {
         playlistRepository.setPlaylistSongs(id, songIds)
     }

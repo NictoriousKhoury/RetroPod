@@ -39,6 +39,7 @@ class PlaylistRepository @Inject constructor(
     }
     suspend fun setPlaylistSongs(id: Long, songIds: List<Long>) = playlistDao.setSongs(id, songIds)
     suspend fun addToPlaylist(id: Long, songIds: List<Long>) = playlistDao.appendSongs(id, songIds)
+    suspend fun removeFromPlaylist(id: Long, songId: Long) = playlistDao.removeSong(id, songId)
     suspend fun userPlaylistSongIds(id: Long): List<Long> = playlistDao.getSongIds(id)
 
     fun importedById(id: Long): Playlist? = _imported.value.firstOrNull { it.id == id }

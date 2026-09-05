@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.retropod.player.ui.theme.Accent
+import com.retropod.player.ui.theme.IosRed
 import com.retropod.player.ui.theme.PrimaryText
 import com.retropod.player.ui.theme.SecondaryText
 import com.retropod.player.ui.theme.TableBackground
@@ -137,29 +139,49 @@ fun SwipeAddToQueue(
     onAddToQueue: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    SwipeSongRow(onAddToQueue = onAddToQueue, content = content)
+}
+
+/** Queue on swipe start-to-end; optional remove on swipe end-to-start. */
+@Composable
+fun SwipeSongRow(
+    onAddToQueue: () -> Unit,
+    onRemove: (() -> Unit)? = null,
+    content: @Composable () -> Unit
+) {
     val state = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.StartToEnd) onAddToQueue()
+            when (value) {
+                SwipeToDismissBoxValue.StartToEnd -> onAddToQueue()
+                SwipeToDismissBoxValue.EndToStart -> onRemove?.invoke()
+                else -> {}
+            }
             false
         }
     )
     SwipeToDismissBox(
         state = state,
-        enableDismissFromEndToStart = false,
+        enableDismissFromEndToStart = onRemove != null,
+        enableDismissFromStartToEnd = true,
         backgroundContent = {
+            val removing = state.dismissDirection == SwipeToDismissBoxValue.EndToStart && onRemove != null
             Box(
                 Modifier
                     .fillMaxSize()
                     .padding(horizontal = 12.dp, vertical = 4.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Accent),
-                contentAlignment = Alignment.CenterStart
+                    .background(if (removing) IosRed else Accent),
+                contentAlignment = if (removing) Alignment.CenterEnd else Alignment.CenterStart
             ) {
                 Row(
-                    Modifier.padding(start = 18.dp),
+                    Modifier.padding(horizontal = 18.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.QueueMusic, contentDescription = "Play next", tint = Color.White)
+                    if (removing) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Remove", tint = Color.White)
+                    } else {
+                        Icon(Icons.Filled.QueueMusic, contentDescription = "Play next", tint = Color.White)
+                    }
                 }
             }
         }

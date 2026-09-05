@@ -60,7 +60,9 @@ import com.retropod.player.ui.components.MiniPlayer
 import com.retropod.player.ui.components.QueueAddedBanner
 import com.retropod.player.ui.components.TabItem
 import com.retropod.player.ui.nav.Routes
+import com.retropod.player.ui.screens.AddSongsScreen
 import com.retropod.player.ui.screens.AlbumsScreen
+import com.retropod.player.ui.screens.ArtistAlbumsScreen
 import com.retropod.player.ui.screens.ArtistsScreen
 import com.retropod.player.ui.screens.CoverFlowScreen
 import com.retropod.player.ui.screens.EqualizerScreen
@@ -266,7 +268,7 @@ private fun MainShell(
                 )
             }
             composable(
-                Routes.ARTIST_DETAIL,
+                Routes.ARTIST_SONGS,
                 arguments = listOf(navArgument("artistName") { type = NavType.StringType })
             ) { entry ->
                 val name = URLDecoder.decode(entry.arguments?.getString("artistName") ?: "", "UTF-8")
@@ -279,19 +281,67 @@ private fun MainShell(
                 )
             }
             composable(
+                Routes.ARTIST_DETAIL,
+                arguments = listOf(navArgument("artistName") { type = NavType.StringType })
+            ) { entry ->
+                val name = URLDecoder.decode(entry.arguments?.getString("artistName") ?: "", "UTF-8")
+                val albums = libraryViewModel.albumsForArtist(name)
+                if (albums.size <= 1) {
+                    val album = albums.singleOrNull()
+                    TrackListScreen(
+                        title = album?.title ?: name,
+                        songs = if (album != null) libraryViewModel.songsForAlbum(album.id)
+                        else libraryViewModel.songsForArtist(name),
+                        onBack = { navController.popBackStack() },
+                        playerViewModel = playerViewModel,
+                        onOpenNowPlaying = openNowPlaying
+                    )
+                } else {
+                    ArtistAlbumsScreen(
+                        artistName = name,
+                        albums = albums,
+                        onBack = { navController.popBackStack() },
+                        onOpenAlbum = { navController.navigate(Routes.album(it)) },
+                        onOpenAllSongs = { navController.navigate(Routes.artistSongs(name)) }
+                    )
+                }
+            }
+            composable(
                 Routes.PLAYLIST_DETAIL,
                 arguments = listOf(
                     navArgument("playlistId") { type = NavType.LongType },
                     navArgument("imported") { type = NavType.BoolType }
                 )
             ) { entry ->
+                val playlistId = entry.arguments?.getLong("playlistId") ?: 0L
+                val imported = entry.arguments?.getBoolean("imported") ?: true
                 PlaylistDetailScreen(
-                    playlistId = entry.arguments?.getLong("playlistId") ?: 0L,
-                    imported = entry.arguments?.getBoolean("imported") ?: true,
+                    playlistId = playlistId,
+                    imported = imported,
                     playlistViewModel = playlistViewModel,
                     playerViewModel = playerViewModel,
                     onBack = { navController.popBackStack() },
-                    onOpenNowPlaying = openNowPlaying
+                    onOpenNowPlaying = openNowPlaying,
+                    onAddSongs = {
+                        navController.navigate(Routes.addToPlaylist(playlistId))
+                    }
+                )
+            }
+            composable(
+                Routes.ADD_TO_PLAYLIST,
+                arguments = listOf(navArgument("playlistId") { type = NavType.LongType })
+            ) { entry ->
+                val playlistId = entry.arguments?.getLong("playlistId") ?: 0L
+                val already by playlistViewModel.userPlaylistSongIdsFlow(playlistId)
+                    .collectAsStateWithLifecycle(emptyList())
+                AddSongsScreen(
+                    alreadyInPlaylist = already.toSet(),
+                    libraryViewModel = libraryViewModel,
+                    onBack = { navController.popBackStack() },
+                    onConfirm = { ids ->
+                        playlistViewModel.addToPlaylist(playlistId, ids)
+                        navController.popBackStack()
+                    }
                 )
             }
 

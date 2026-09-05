@@ -22,17 +22,15 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Equalizer
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.draw.alpha
@@ -78,11 +77,10 @@ fun NowPlayingScreen(
     val nowPlaying by playerViewModel.nowPlaying.collectAsStateWithLifecycle()
     val isPlaying by playerViewModel.isPlaying.collectAsStateWithLifecycle()
     val position by playerViewModel.positionMs.collectAsStateWithLifecycle()
-    val shuffle by playerViewModel.shuffle.collectAsStateWithLifecycle()
     val repeat by playerViewModel.repeat.collectAsStateWithLifecycle()
-    val favorite by playerViewModel.favorite.collectAsStateWithLifecycle()
     var dragY by remember { mutableFloatStateOf(0f) }
     val haptics = LocalHapticFeedback.current
+    LockPortraitWhileVisible()
 
     Column(
         modifier = modifier
@@ -246,25 +244,32 @@ fun NowPlayingScreen(
             onNext = { playerViewModel.next() }
         )
 
-        // shuffle / eq / repeat / favorite
+        // eq / repeat
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 12.dp).navigationBarsPadding(),
+            Modifier.fillMaxWidth().padding(horizontal = 64.dp, vertical = 12.dp).navigationBarsPadding(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ToggleIcon(Icons.Filled.Shuffle, "Shuffle", active = shuffle) { playerViewModel.toggleShuffle() }
             ToggleIcon(Icons.Filled.Equalizer, "Equalizer", active = false, onClick = onOpenEq)
             ToggleIcon(
                 if (repeat == RepeatMode.ONE) Icons.Filled.RepeatOne else Icons.Filled.Repeat,
                 "Repeat",
                 active = repeat != RepeatMode.OFF
             ) { playerViewModel.cycleRepeat() }
-            ToggleIcon(
-                if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                "Favorite",
-                active = favorite
-            ) { playerViewModel.toggleFavorite() }
         }
+    }
+}
+
+@Composable
+private fun LockPortraitWhileVisible() {
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val activity = context as? android.app.Activity
+        val previous = activity?.requestedOrientation
+            ?: android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        activity?.requestedOrientation =
+            android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        onDispose { activity?.requestedOrientation = previous }
     }
 }
 

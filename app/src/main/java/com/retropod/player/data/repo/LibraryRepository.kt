@@ -51,4 +51,12 @@ class LibraryRepository @Inject constructor(
     fun songsForArtist(name: String): List<Song> = _songs.value.filter { it.artist == name }
     fun songsForAlbum(albumId: Long): List<Song> =
         _songs.value.filter { it.albumId == albumId }.sortedBy { it.trackNumber }
+
+    fun albumsForArtist(name: String): List<Album> {
+        val albumIds = songsForArtist(name).map { it.albumId }.distinct()
+        val byId = _albums.value.associateBy { it.id }
+        return albumIds.mapNotNull { byId[it] }.sortedWith(
+            compareBy<Album> { it.year.takeIf { y -> y > 0 } ?: Int.MAX_VALUE }.thenBy { it.title.lowercase() }
+        )
+    }
 }

@@ -9,7 +9,9 @@ object Routes {
 
     const val ALBUM_DETAIL = "album/{albumId}"
     const val ARTIST_DETAIL = "artist/{artistName}"
+    const val ARTIST_SONGS = "artist/{artistName}/songs"
     const val PLAYLIST_DETAIL = "playlist/{playlistId}/{imported}"
+    const val ADD_TO_PLAYLIST = "addtoplaylist/{playlistId}"
 
     const val NOW_PLAYING = "nowplaying"
     const val QUEUE = "queue"
@@ -20,7 +22,9 @@ object Routes {
 
     fun album(id: Long) = "album/$id"
     fun artist(name: String) = "artist/${java.net.URLEncoder.encode(name, "UTF-8")}"
+    fun artistSongs(name: String) = "artist/${java.net.URLEncoder.encode(name, "UTF-8")}/songs"
     fun playlist(id: Long, imported: Boolean) = "playlist/$id/$imported"
+    fun addToPlaylist(id: Long) = "addtoplaylist/$id"
 
     val topLevel = listOf(PLAYLISTS, ARTISTS, SONGS, ALBUMS)
 }

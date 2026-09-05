@@ -40,6 +40,7 @@ class LibraryViewModel @Inject constructor(
 
     fun songsForAlbum(albumId: Long): List<Song> = libraryRepository.songsForAlbum(albumId)
     fun songsForArtist(name: String): List<Song> = libraryRepository.songsForArtist(name)
+    fun albumsForArtist(name: String) = libraryRepository.albumsForArtist(name)
     fun songsByIds(ids: List<Long>): List<Song> = libraryRepository.songsByIds(ids)
     fun importedById(id: Long): Playlist? = playlistRepository.importedById(id)
 }

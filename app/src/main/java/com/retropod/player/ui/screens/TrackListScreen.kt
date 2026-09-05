@@ -31,7 +31,7 @@ import com.retropod.player.ui.theme.Textures
 import com.retropod.player.data.model.Song
 import com.retropod.player.ui.components.IosNavBar
 import com.retropod.player.ui.components.ListRow
-import com.retropod.player.ui.components.SwipeAddToQueue
+import com.retropod.player.ui.components.SwipeSongRow
 import com.retropod.player.ui.theme.TableBackground
 import com.retropod.player.ui.viewmodel.PlayerViewModel
 
@@ -42,10 +42,12 @@ fun TrackListScreen(
     onBack: () -> Unit,
     playerViewModel: PlayerViewModel,
     modifier: Modifier = Modifier,
-    onOpenNowPlaying: () -> Unit = {}
+    onOpenNowPlaying: () -> Unit = {},
+    navAction: (@Composable () -> Unit)? = null,
+    onRemoveSong: ((Song) -> Unit)? = null
 ) {
     Column(modifier.fillMaxSize().background(TableBackground)) {
-        IosNavBar(title = title, onBack = onBack)
+        IosNavBar(title = title, onBack = onBack, action = navAction)
         LazyColumn(Modifier.fillMaxSize()) {
             item {
                 Row(
@@ -66,7 +68,10 @@ fun TrackListScreen(
                 }
             }
             itemsIndexed(songs, key = { _, s -> s.id }) { index, song ->
-                SwipeAddToQueue(onAddToQueue = { playerViewModel.addToQueue(song) }) {
+                SwipeSongRow(
+                    onAddToQueue = { playerViewModel.addToQueue(song) },
+                    onRemove = onRemoveSong?.let { remove -> { remove(song) } }
+                ) {
                     ListRow(
                         title = song.title,
                         subtitle = song.artist,

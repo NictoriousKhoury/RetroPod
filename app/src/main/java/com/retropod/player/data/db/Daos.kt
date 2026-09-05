@@ -43,6 +43,17 @@ interface PlaylistDao {
     @Query("DELETE FROM playlist_songs WHERE playlistId = :playlistId")
     suspend fun clearSongs(playlistId: Long)
 
+    @Query("DELETE FROM playlist_songs WHERE playlistId = :playlistId AND songId = :songId")
+    suspend fun deleteSongCrossRef(playlistId: Long, songId: Long)
+
+    @Transaction
+    suspend fun removeSong(playlistId: Long, songId: Long) {
+        deleteSongCrossRef(playlistId, songId)
+        val remaining = getSongIds(playlistId)
+        clearSongs(playlistId)
+        insertSongs(remaining.mapIndexed { i, sid -> PlaylistSongEntity(playlistId, sid, i) })
+    }
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSongs(entries: List<PlaylistSongEntity>)
 
@@ -57,8 +68,11 @@ interface PlaylistDao {
 
     @Transaction
     suspend fun appendSongs(playlistId: Long, songIds: List<Long>) {
+        val existing = getSongIds(playlistId).toSet()
+        val toAdd = songIds.filter { it !in existing }
+        if (toAdd.isEmpty()) return
         var pos = maxPosition(playlistId) + 1
-        insertSongs(songIds.map { PlaylistSongEntity(playlistId, it, pos++) })
+        insertSongs(toAdd.map { PlaylistSongEntity(playlistId, it, pos++) })
     }
 }
 
