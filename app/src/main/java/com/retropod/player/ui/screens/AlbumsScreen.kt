@@ -2,12 +2,17 @@ package com.retropod.player.ui.screens
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.retropod.player.ui.components.ListRow
+import com.retropod.player.ui.components.SearchField
 import com.retropod.player.ui.viewmodel.LibraryViewModel
 
 @Composable
@@ -17,8 +22,19 @@ fun AlbumsScreen(
     modifier: Modifier = Modifier
 ) {
     val albums by libraryViewModel.albums.collectAsStateWithLifecycle()
-    LazyColumn(modifier.fillMaxSize()) {
-        items(albums, key = { it.id }) { album ->
+    var query by remember { mutableStateOf("") }
+    val q = query.trim().lowercase()
+    val visible = if (q.isBlank()) albums
+    else albums.filter {
+        it.title.lowercase().contains(q) || it.artist.lowercase().contains(q)
+    }
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = 1)
+
+    LazyColumn(modifier.fillMaxSize(), state = listState) {
+        item(key = "__search__") {
+            SearchField(value = query, onValueChange = { query = it }, placeholder = "Search albums")
+        }
+        items(visible, key = { it.id }) { album ->
             ListRow(
                 title = album.title,
                 subtitle = "${album.artist} \u2022 ${album.songCount} songs",

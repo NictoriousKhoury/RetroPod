@@ -41,9 +41,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.retropod.player.ui.theme.Accent
 import com.retropod.player.ui.theme.PrimaryText
-import com.retropod.player.ui.theme.RowBackground
 import com.retropod.player.ui.theme.SecondaryText
 import com.retropod.player.ui.theme.TableBackground
+import com.retropod.player.ui.theme.glassCard
 
 @Composable
 fun ListRow(
@@ -66,8 +66,7 @@ fun ListRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .scale(scale)
-                .clip(RoundedCornerShape(16.dp))
-                .background(RowBackground)
+                .glassCard(16.dp, 6.dp)
                 .then(
                     if (onClick != null) Modifier.clickable(interactionSource = interaction, indication = null) { onClick() }
                     else Modifier

@@ -15,12 +15,14 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.border
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.retropod.player.ui.theme.Accent
+import com.retropod.player.ui.theme.Textures
 
 @Composable
 fun TransportControls(
@@ -41,7 +43,12 @@ fun TransportControls(
         }
         IconButton(onClick = onPlayPause, modifier = Modifier.size(80.dp)) {
             Box(
-                Modifier.size(68.dp).clip(CircleShape).background(Accent),
+                Modifier
+                    .size(72.dp)
+                    .shadow(16.dp, CircleShape, clip = false)
+                    .clip(CircleShape)
+                    .background(Textures.blueButton)
+                    .border(1.5.dp, Color(0x99FFFFFF), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

@@ -48,6 +48,7 @@ class PlaybackService : MediaLibraryService() {
     @Inject lateinit var playlistRepository: PlaylistRepository
     @Inject lateinit var playbackStateDao: PlaybackStateDao
     @Inject lateinit var librarySync: LibrarySync
+    @Inject lateinit var equalizerController: EqualizerController
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var player: ExoPlayer
@@ -80,7 +81,11 @@ class PlaybackService : MediaLibraryService() {
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) = saveState()
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = saveState()
+            override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                equalizerController.attach(audioSessionId)
+            }
         })
+        equalizerController.attach(player.audioSessionId)
 
         serviceScope.launch {
             librarySync.sync(scanDisk = true)
@@ -131,6 +136,7 @@ class PlaybackService : MediaLibraryService() {
 
     override fun onDestroy() {
         saveState()
+        equalizerController.release()
         if (::session.isInitialized) session.release()
         if (::player.isInitialized) player.release()
         serviceScope.cancel()

@@ -3,6 +3,7 @@ package com.retropod.player.ui.screens
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
@@ -18,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.retropod.player.ui.components.ListRow
+import com.retropod.player.ui.components.SearchField
 import com.retropod.player.ui.components.SectionHeader
 import com.retropod.player.ui.viewmodel.PlaylistViewModel
 
@@ -35,12 +37,21 @@ fun PlaylistsScreen(
     val user by playlistViewModel.userPlaylists.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
+    var query by remember { mutableStateOf("") }
+    val q = query.trim().lowercase()
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = 1)
 
-    val genres = imported.filter { !DECADE.matches(it.name) && it.name !in VIBES }.sortedBy { it.name }
-    val decades = imported.filter { DECADE.matches(it.name) }.sortedBy { it.name }
-    val vibes = imported.filter { it.name in VIBES }.sortedBy { it.name }
+    fun matches(name: String) = q.isBlank() || name.lowercase().contains(q)
 
-    LazyColumn(modifier.fillMaxSize()) {
+    val genres = imported.filter { !DECADE.matches(it.name) && it.name !in VIBES && matches(it.name) }.sortedBy { it.name }
+    val decades = imported.filter { DECADE.matches(it.name) && matches(it.name) }.sortedBy { it.name }
+    val vibes = imported.filter { it.name in VIBES && matches(it.name) }.sortedBy { it.name }
+    val visibleUser = user.filter { matches(it.name) }
+
+    LazyColumn(modifier.fillMaxSize(), state = listState) {
+        item(key = "__search__") {
+            SearchField(value = query, onValueChange = { query = it }, placeholder = "Search playlists")
+        }
         item {
             ListRow(
                 title = "New Playlist\u2026",
@@ -50,9 +61,9 @@ fun PlaylistsScreen(
                 onClick = { showDialog = true }
             )
         }
-        if (user.isNotEmpty()) {
+        if (visibleUser.isNotEmpty()) {
             item { SectionHeader("My Playlists") }
-            items(user, key = { "u${it.id}" }) { p ->
+            items(visibleUser, key = { "u${it.id}" }) { p ->
                 ListRow(title = p.name, showArtwork = false, showChevron = true,
                     onClick = { onOpenUser(p.id) })
             }

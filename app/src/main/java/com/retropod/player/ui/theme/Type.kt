@@ -10,8 +10,7 @@ import androidx.compose.ui.unit.sp
 import com.retropod.player.R
 
 /**
- * Quicksand is a geometric rounded sans — the same family as Apple's Myriad
- * wordmark: simple, even strokes, a little fancy without being decorative.
+ * Outfit is a geometric sans with even metal-signage strokes.
  * Downloaded at runtime via Play Services; falls back to the system sans.
  */
 private val provider = GoogleFont.Provider(
@@ -21,11 +20,11 @@ private val provider = GoogleFont.Provider(
 )
 
 val RetroFontFamily = FontFamily(
-    Font(googleFont = GoogleFont("Quicksand"), fontProvider = provider, weight = FontWeight.Light),
-    Font(googleFont = GoogleFont("Quicksand"), fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = GoogleFont("Quicksand"), fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = GoogleFont("Quicksand"), fontProvider = provider, weight = FontWeight.SemiBold),
-    Font(googleFont = GoogleFont("Quicksand"), fontProvider = provider, weight = FontWeight.Bold)
+    Font(googleFont = GoogleFont("Outfit"), fontProvider = provider, weight = FontWeight.Light),
+    Font(googleFont = GoogleFont("Outfit"), fontProvider = provider, weight = FontWeight.Normal),
+    Font(googleFont = GoogleFont("Outfit"), fontProvider = provider, weight = FontWeight.Medium),
+    Font(googleFont = GoogleFont("Outfit"), fontProvider = provider, weight = FontWeight.SemiBold),
+    Font(googleFont = GoogleFont("Outfit"), fontProvider = provider, weight = FontWeight.Bold)
 )
 
 val RetroTypography = Typography(

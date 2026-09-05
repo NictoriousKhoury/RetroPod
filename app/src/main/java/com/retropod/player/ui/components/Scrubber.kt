@@ -25,7 +25,7 @@ fun Scrubber(
     durationMs: Long,
     onSeek: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    accent: Color = Color(0xFF4C9BFF),
+    accent: Color = Color(0xFF7ED4FF),
     labelColor: Color = Color(0xFFB8BCC6)
 ) {
     var dragValue by remember { mutableStateOf<Float?>(null) }

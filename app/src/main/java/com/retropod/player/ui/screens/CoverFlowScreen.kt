@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.retropod.player.ui.theme.Textures
 import com.retropod.player.ui.viewmodel.LibraryViewModel
 import com.retropod.player.ui.viewmodel.PlayerViewModel
 import kotlin.math.absoluteValue
@@ -50,9 +51,7 @@ fun CoverFlowScreen(
     val pagerState = rememberPagerState(pageCount = { albums.size })
 
     Box(
-        modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(Color(0xFF1A2230), Color(0xFF0A0D12)))
-        )
+        modifier.fillMaxSize().background(Textures.nowPlaying)
     ) {
         if (albums.isEmpty()) {
             Text("No albums", color = Color.White, modifier = Modifier.align(Alignment.Center))

@@ -72,6 +72,7 @@ fun IosNavBar(
     val openNowPlaying = LocalOpenNowPlaying.current
 
     Column(modifier = modifier.fillMaxWidth().background(Textures.navBar)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0x66FFFFFF)))
         Box(
             modifier = Modifier.fillMaxWidth().statusBarsPadding().height(64.dp).padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
@@ -126,8 +127,8 @@ fun NowPlayingChip(art: Uri?, title: String?, onClick: () -> Unit) {
                 .height(56.dp)
                 .shadow(12.dp, RoundedCornerShape(18.dp), clip = false)
                 .clip(RoundedCornerShape(18.dp))
-                .background(Color(0xE62A3348))
-                .border(1.5.dp, Accent.copy(alpha = 0.85f), RoundedCornerShape(18.dp))
+                .background(Textures.metalPanel)
+                .border(1.dp, Color(0x66E8EEF6), RoundedCornerShape(18.dp))
                 .clickable(onClick = onClick)
                 .padding(start = 5.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -196,10 +197,10 @@ fun IosTabBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
-                .shadow(18.dp, RoundedCornerShape(32.dp), clip = false)
+                .shadow(22.dp, RoundedCornerShape(32.dp), clip = false)
                 .clip(RoundedCornerShape(32.dp))
                 .background(Textures.tabBar)
-                .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(32.dp)),
+                .border(1.dp, Color(0x55E8EEF6), RoundedCornerShape(32.dp)),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -229,7 +230,7 @@ fun IosTabBar(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
-                            .background(if (selected) Accent.copy(alpha = 0.35f) else Color.Transparent)
+                            .background(if (selected) Accent.copy(alpha = 0.28f) else Color.Transparent)
                             .padding(horizontal = 14.dp, vertical = 4.dp)
                             .scale(scale),
                         contentAlignment = Alignment.Center

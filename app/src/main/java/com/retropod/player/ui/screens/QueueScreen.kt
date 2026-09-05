@@ -1,6 +1,7 @@
 package com.retropod.player.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -179,7 +180,8 @@ private fun QueueRow(
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(if (isCurrent) Accent.copy(alpha = 0.12f) else RowBackground)
+            .background(if (isCurrent) Accent.copy(alpha = 0.16f) else Color(0xFF161B24))
+            .then(if (isCurrent) Modifier.border(1.dp, Accent.copy(alpha = 0.45f), RoundedCornerShape(16.dp)) else Modifier)
             .clickable { onClick() }
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically

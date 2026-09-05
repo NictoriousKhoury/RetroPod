@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.retropod.player.ui.theme.Textures
 import com.retropod.player.data.model.Song
 import com.retropod.player.ui.components.IosNavBar
 import com.retropod.player.ui.components.ListRow
@@ -90,7 +91,7 @@ private fun PillButton(
         modifier = modifier
             .height(44.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(if (accent) Color(0xFF5B7CFF) else Color(0xFF2A3344))
+            .background(if (accent) Textures.blueButton else Textures.metalPanel)
             .clickable { onClick() },
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically

@@ -3,6 +3,7 @@ package com.retropod.player.ui.screens
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -41,6 +43,8 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -68,6 +72,7 @@ fun NowPlayingScreen(
     onOpenQueue: () -> Unit,
     onOpenArtist: (String) -> Unit = {},
     onOpenAlbum: (Long) -> Unit = {},
+    onOpenEq: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val nowPlaying by playerViewModel.nowPlaying.collectAsStateWithLifecycle()
@@ -137,6 +142,17 @@ fun NowPlayingScreen(
             Modifier.fillMaxWidth().weight(1f).padding(horizontal = 28.dp),
             contentAlignment = Alignment.Center
         ) {
+            AsyncImage(
+                model = nowPlaying?.artworkUri,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .scale(1.35f)
+                    .blur(48.dp)
+                    .alpha(0.55f)
+            )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 AsyncImage(
                     model = nowPlaying?.artworkUri,
@@ -147,6 +163,7 @@ fun NowPlayingScreen(
                         .aspectRatio(1f)
                         .shadow(28.dp, RoundedCornerShape(28.dp), clip = false)
                         .clip(RoundedCornerShape(28.dp))
+                        .border(1.5.dp, Color(0x66E8EEF6), RoundedCornerShape(28.dp))
                         .background(Color(0xFF17181C))
                         .pointerInput(nowPlaying?.albumId) {
                             detectTapGestures(
@@ -229,13 +246,14 @@ fun NowPlayingScreen(
             onNext = { playerViewModel.next() }
         )
 
-        // shuffle / repeat / favorite
+        // shuffle / eq / repeat / favorite
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 36.dp, vertical = 12.dp).navigationBarsPadding(),
+            Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 12.dp).navigationBarsPadding(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             ToggleIcon(Icons.Filled.Shuffle, "Shuffle", active = shuffle) { playerViewModel.toggleShuffle() }
+            ToggleIcon(Icons.Filled.Equalizer, "Equalizer", active = false, onClick = onOpenEq)
             ToggleIcon(
                 if (repeat == RepeatMode.ONE) Icons.Filled.RepeatOne else Icons.Filled.Repeat,
                 "Repeat",
@@ -259,7 +277,7 @@ private fun ToggleIcon(
 ) {
     Box(Modifier.size(48.dp).clip(RoundedCornerShape(16.dp)).clickable { onClick() },
         contentAlignment = Alignment.Center) {
-        Icon(icon, label, tint = if (active) Color(0xFF8AA4FF) else Color(0xFFB8BCC6),
+        Icon(icon, label, tint = if (active) Accent else Color(0xFFB8BCC6),
             modifier = Modifier.size(26.dp))
     }
 }

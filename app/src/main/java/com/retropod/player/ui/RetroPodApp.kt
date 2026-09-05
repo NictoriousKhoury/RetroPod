@@ -56,12 +56,14 @@ import com.retropod.player.ui.components.IosTabBar
 import com.retropod.player.ui.components.LocalNowPlayingArt
 import com.retropod.player.ui.components.LocalNowPlayingTitle
 import com.retropod.player.ui.components.LocalOpenNowPlaying
+import com.retropod.player.ui.components.MiniPlayer
 import com.retropod.player.ui.components.QueueAddedBanner
 import com.retropod.player.ui.components.TabItem
 import com.retropod.player.ui.nav.Routes
 import com.retropod.player.ui.screens.AlbumsScreen
 import com.retropod.player.ui.screens.ArtistsScreen
 import com.retropod.player.ui.screens.CoverFlowScreen
+import com.retropod.player.ui.screens.EqualizerScreen
 import com.retropod.player.ui.screens.NowPlayingScreen
 import com.retropod.player.ui.screens.PlaylistDetailScreen
 import com.retropod.player.ui.screens.PlaylistsScreen
@@ -142,6 +144,7 @@ private fun MainShell(
     val selectedIndex = Routes.topLevel.indexOf(currentRoute).coerceAtLeast(0)
 
     val nowPlaying by playerViewModel.nowPlaying.collectAsStateWithLifecycle()
+    val isPlaying by playerViewModel.isPlaying.collectAsStateWithLifecycle()
     val queueToast by playerViewModel.queueToast.collectAsStateWithLifecycle()
 
     val tabs = listOf(
@@ -164,7 +167,8 @@ private fun MainShell(
     }
 
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val hideNowPlayingChip = currentRoute == Routes.NOW_PLAYING || isLandscape
+    val showMiniPlayer = isTopLevel && nowPlaying != null && !isLandscape
+    val hideNowPlayingChip = currentRoute == Routes.NOW_PLAYING || isLandscape || showMiniPlayer
 
     CompositionLocalProvider(
         LocalNowPlayingArt provides nowPlaying?.artworkUri.takeIf { !hideNowPlayingChip },
@@ -176,8 +180,22 @@ private fun MainShell(
         containerColor = TableBackground,
         bottomBar = {
             if (isTopLevel) {
-                IosTabBar(tabs = tabs, selectedIndex = selectedIndex,
-                    onSelect = { openTopLevel(Routes.topLevel[it]) })
+                Column(Modifier.fillMaxWidth()) {
+                    val np = nowPlaying
+                    if (np != null && !isLandscape) {
+                        MiniPlayer(
+                            title = np.title,
+                            artist = np.artist,
+                            artworkUri = np.artworkUri,
+                            isPlaying = isPlaying,
+                            onOpen = openNowPlaying,
+                            onPlayPause = { playerViewModel.togglePlayPause() },
+                            onNext = { playerViewModel.next() }
+                        )
+                    }
+                    IosTabBar(tabs = tabs, selectedIndex = selectedIndex,
+                        onSelect = { openTopLevel(Routes.topLevel[it]) })
+                }
             }
         }
     ) { padding ->
@@ -305,11 +323,17 @@ private fun MainShell(
                                 libraryViewModel.songs.value.firstOrNull { it.id == songId }?.albumId
                             }
                         if (id != null && id != 0L) navController.navigate(Routes.album(id))
+                    },
+                    onOpenEq = {
+                        navController.navigate(Routes.EQUALIZER) { launchSingleTop = true }
                     }
                 )
             }
             composable(Routes.QUEUE) {
                 QueueScreen(playerViewModel, onBack = { navController.popBackStack() })
+            }
+            composable(Routes.EQUALIZER) {
+                EqualizerScreen(onBack = { navController.popBackStack() })
             }
         }
     }
@@ -318,7 +342,7 @@ private fun MainShell(
         onDismiss = { playerViewModel.consumeQueueToast() },
         modifier = Modifier
             .align(Alignment.BottomCenter)
-            .padding(bottom = if (isTopLevel) 84.dp else 8.dp)
+            .padding(bottom = if (showMiniPlayer) 160.dp else if (isTopLevel) 84.dp else 8.dp)
     )
     if (isLandscape && currentRoute in Routes.topLevel) {
         CoverFlowScreen(
